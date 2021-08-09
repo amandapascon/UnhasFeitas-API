@@ -5,7 +5,7 @@ const authenticate = require('./middlewares/authenticate')
 
 const userController = require('./controllers/userController')
 const packController = require('./controllers/packageController')
-/* const paymentController = require('./controllers/paymentController') */
+const paymentController = require('./controllers/paymentController')
 const timeController = require('./controllers/timeController')
 const schedulingController = require('./controllers/schedullingController')
 
@@ -21,11 +21,11 @@ routes.post('/package', authenticate.AuthAdmin, packController.newPack)
 routes.delete('/package/:id', authenticate.AuthAdmin, packController.deletePack)
 routes.get('/package', authenticate.Auth, packController.showPacks)
 
-/* routes.post('/payment/package/:id_pack', authenticate.Auth, paymentController.newPayment)
+routes.post('/payment/package/:id_pack', authenticate.Auth, paymentController.newPayment)
 routes.patch('/payment', authenticate.Auth, paymentController.cancelPayment)
 routes.get('/payment', authenticate.AuthAdmin, paymentController.showPayments)
 routes.patch('/payment/:id_user', authenticate.AuthAdmin, paymentController.checkPayment)
- */
+
 routes.post('/time', authenticate.AuthAdmin, timeController.newTime)
 routes.get('/time', authenticate.Auth, timeController.showTime)
 routes.delete('/time/:id_time', authenticate.AuthAdmin, timeController.deleteTime)
