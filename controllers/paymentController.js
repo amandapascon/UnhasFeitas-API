@@ -53,6 +53,27 @@ module.exports = {
         }
     },
 
+    //cancel some user payment
+    async cancelPaymentById(req, res){
+        const user = await User.findById({_id: req.params.id}).exec()
+        if(!user){
+            return res.status(404).send()
+        }
+
+        if(user.status === "requested"){
+            let update = []
+            update = {$set: {'status': "unused",  'pack': null}}
+            const updateUser = await User.findByIdAndUpdate({_id: user._id}, update, {new: true}).exec()
+            if(!updateUser){
+                return res.status(404).send()
+            }else{
+                return res.status(200).json(updateUser)
+            }  
+        }else{
+            return res.status(404).send()
+        }
+    },
+
     //show all users payments
     async showPayments(req, res){
         const users = await User.find().where('status').equals("requested").exec()

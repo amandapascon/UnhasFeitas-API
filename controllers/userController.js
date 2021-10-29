@@ -58,6 +58,14 @@ module.exports = {
         return res.status(200).json(user)        
     },    
 
+    async showUserById(req, res){
+        const user = await User.findById({_id: req.params.id})
+        if(!user){
+            return res.status(404).send()
+        }
+        return res.status(200).json(user)        
+    }, 
+
     //show all users (admin)
     async showUsers(req, res){
         const user = await User.find()
@@ -92,5 +100,32 @@ module.exports = {
               return res.status(200).json(decoded)
             }
           })
+    },
+
+    //update user information
+    async updateUser(req, res){
+        const {name, phone} = req.body;
+
+        const userFound = await User.findById({_id: req.user.id})
+        if(!userFound){
+            return res.status(404).send()
+        }
+
+        const userPhone = await User.findOne({phone: phone}).where('_id').equals(req.user.id).exec()    
+        if(!userPhone){
+            const alreadyPhone = await User.findOne({phone: phone})
+            if(alreadyPhone)
+                return res.status(404).send()
+        }
+                
+        let update = []
+        update = {$set: {'name': name, 'phone': phone}}
+        console.log(update);
+        const updateUser = await User.findByIdAndUpdate({_id: req.user.id}, update, {new: true}).exec()
+        if(!updateUser){
+            return res.status(404).send()
+        }else{
+            return res.status(200).json(updateUser)
+        }
     }
 }

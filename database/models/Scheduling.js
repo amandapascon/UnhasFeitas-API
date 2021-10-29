@@ -8,9 +8,10 @@ const UserSchema = new mongoose.Schema({
     user: {
         type: String,
         required: true,
+        ref: 'User'
     },
     services: {
-        type: String,
+        type: Array,
         required: true,
     },
     status:{

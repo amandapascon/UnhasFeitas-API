@@ -13,9 +13,11 @@ const schedulingController = require('./controllers/schedullingController')
 routes.post('/user', userController.newUser)
 routes.put('/login', userController.loginUser)
 routes.get('/user', authenticate.Auth, userController.showUser)
+routes.get('/user/:id', authenticate.AuthAdmin, userController.showUserById)
 routes.get('/users', authenticate.AuthAdmin, userController.showUsers)
 routes.delete('/user', authenticate.Auth, userController.deleteUser)
-routes.get('/my_account', userController.my_account)
+/* routes.get('/my_account', userController.my_account) */
+routes.put('/update', authenticate.Auth, userController.updateUser)
 
 routes.post('/package', authenticate.AuthAdmin, packController.newPack)
 routes.delete('/package/:id', authenticate.AuthAdmin, packController.deletePack)
@@ -23,8 +25,9 @@ routes.get('/package', authenticate.Auth, packController.showPacks)
 
 routes.post('/payment/package/:id_pack', authenticate.Auth, paymentController.newPayment)
 routes.patch('/payment', authenticate.Auth, paymentController.cancelPayment)
+routes.patch('/payment-cancel/:id', authenticate.AuthAdmin, paymentController.cancelPaymentById)
 routes.get('/payment', authenticate.AuthAdmin, paymentController.showPayments)
-routes.patch('/payment/:id_user', authenticate.AuthAdmin, paymentController.checkPayment)
+routes.patch('/payment-aprove/:id_user', authenticate.AuthAdmin, paymentController.checkPayment)
 
 routes.post('/time', authenticate.AuthAdmin, timeController.newTime)
 routes.get('/time', authenticate.Auth, timeController.showTime)

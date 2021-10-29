@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const moment = require('moment')
 
 const Scheduling = mongoose.model('Scheduling')
 const User = mongoose.model('User')
@@ -8,6 +9,11 @@ module.exports = {
     //new scheduling
     async newScheduling(req, res){
         const {date, services} = req.body
+
+        console.log(moment(date).format(), services)
+
+        if(!services || !date)
+            return res.status(404).send()
 
         //verificando se user ja tem algum agendamento "scheduled"
         const schedulingFound = await Scheduling.findOne({user: req.user.id}).where('status').equals("scheduled").exec()
@@ -19,13 +25,27 @@ module.exports = {
         if(!user)
             return res.status(404).send()
             
-        if(services == "Pé e Mão"){
+        if(services=="Mão,Pé" || services=="Pé,Mão"){
+
             if(user.remainingPack<2)
                 return res.status(404).send()
             
+            const nextTimeFound = await Time.findOne({date: moment(moment(date).add(1, 'hour')).format()}).exec()
+            if(!nextTimeFound)
+                return res.status(404).send()
+            
+            let update = []
+            update = {$set: {'available': false}}
+            const time1 = await Time.findOneAndUpdate({date: moment(date).format()}, update, {new: true}).exec()
+            if(!time1)
+                return res.status(404).send()
+            const time2 = await Time.findOneAndUpdate({date: moment(moment(date).add(1, 'hour')).format()}, update, {new: true}).exec()
+            if(!time2)
+                return res.status(404).send()           
+
             //datas consecutivas
             
-        }else{
+        }else if(services=="Mão" || services=="Pé"){
             if(user.remainingPack<1)
                 return res.status(404).send()
             let update = []
@@ -50,12 +70,28 @@ module.exports = {
         if(!schedulingFound)
             return res.status(404).send()        
 
-        if(schedulingFound.services == "Pé e Mão"){
+        if(schedulingFound.services=="Mão,Pé" || schedulingFound.services=="Pé,Mão"){
+            let update = []
+            update = {$set: {'available': true}}
+            const time1 = await Time.findOneAndUpdate({date: moment(schedulingFound.date).format()}, update, {new: true}).exec()
+            if(!time1)
+                return res.status(404).send()
+            const time2 = await Time.findOneAndUpdate({date: moment(moment(schedulingFound.date).add(1, 'hour')).format()}, update, {new: true}).exec()
+            if(!time2)
+                return res.status(404).send()  
+            
+            let updateScheduling = []
+            updateScheduling = {$set: {'status': "canceled"}}
+            const scheduling = await Scheduling.findOneAndUpdate({_id: id_scheduling}, updateScheduling, {new: true}).exec()
+            if(scheduling)
+                return res.status(200).send()
+            else
+                return res.status(404).send()
 
         }else{
             let update = []
             update = {$set: {'available': true}}
-            const time = await Time.findOneAndUpdate({date: schedulingFound.date}, update, {new: true}).exec()
+            const time = await Time.findOneAndUpdate({date: moment(schedulingFound.date).format()}, update, {new: true}).exec()
             if(!time)
                 return res.status(404).send()
             
@@ -75,7 +111,7 @@ module.exports = {
         if(!scheduling)
             return res.status(404).send()
         else
-            return res.status(200).json(scheduling)
+            return res.status(200).json(scheduling[0])
     },
 
     //user scheduling historic
@@ -89,7 +125,7 @@ module.exports = {
   
     //show all scheduling (admin)
     async showScheduling(req, res){
-        const scheduling = await Scheduling.find().where('status').equals("scheduled").exec()  
+        const scheduling = await Scheduling.find().where('status').equals("scheduled").populate("user").exec()  
         if(!scheduling)
             return res.status(404).send()
         else

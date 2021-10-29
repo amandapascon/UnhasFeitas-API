@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-
+const moment = require('moment')
 const Time = mongoose.model('Time')
 
 module.exports = {
@@ -10,12 +10,14 @@ module.exports = {
         if(!(new Date() < new Date(date)))
             return res.status(404).send()
         
-        const timeFound = await Time.findOne({date: date}).exec()
+        const timeFound = await Time.findOne({date: moment(date).format()}).exec()
         if(timeFound){
             return res.status(404).send()
         }
 
-        const time = await Time.create({date: date})
+        console.log(moment(date).format())
+
+        const time = await Time.create({date: moment(date).format()})
         if(!time)
             return res.status(404).send()
         else
